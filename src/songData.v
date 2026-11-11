@@ -8,8 +8,8 @@ output wire [7:0]bpm,
 output reg finish
 );
 
-reg [16:0] tones [0:404];
-reg [4:0] ttime [0:404];
+(* ramstyle = "M9K" *)reg [18:0] tones [0:404];
+(* ramstyle = "M9K" *)reg [5:0] ttime [0:404];
 
 reg [8:0] idx; // 0~511
 
@@ -46,12 +46,12 @@ localparam HXI= 508  * 50;
 localparam Nowbpm = 8'd64;
  // 单片机频率：50MHz；
  // 现实一秒=50_000_000
- // 1s   =50_000_000
- // 300ms=15_000_000
- // 150ms= 7_500_000
- // 50ms = 2_500_000
- // 10ms =   500_000
- // 1ms  =    50_000
+ // 1s    = 50_000_000
+ // 300ms = 15_000_000
+ // 150ms =  7_500_000
+ // 50ms  =  2_500_000
+ // 10ms  =    500_000
+ // 1ms   =     50_000
  
  //bpm64 = 60/64 = 0.9375s/4拍
  //bps   = 60/64 = 0.9375s
@@ -84,15 +84,6 @@ always @(posedge clk or negedge resetIdx) begin
 			else
 				idx <= idx + 1'b1;
 		end
-	 
-		/*if(nextFlag) begin
-			nextFlag = 0;
-			cnt_t <= 0;
-			if(idx == 8'd140)
-				finish = 1;
-			else
-				idx <= idx + 1'b1;
-		end*/
     end
 end
 

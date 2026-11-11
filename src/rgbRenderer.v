@@ -1,11 +1,11 @@
 module rgbRenderer(
-    input clk,
-    input rst_n,
+    input wire clk,
+    input wire rst_n,
 	 // write var
-	 input [2:0] x,
-	 input [2:0] y,
-	 input [23:0] pixelToWrite,
-	 input write_flag,
+	 input wire [2:0] x,
+	 input wire [2:0] y,
+	 input wire [23:0] pixelToWrite,
+	 input wire write_flag,
 	 
 	 // rgb matrix
 	 output reg mt_in
@@ -33,6 +33,16 @@ parameter RST_CYC   = 14000;
 reg [23:0] write_buf [0:7][0:7]; // bufferr
 reg [23:0] disp_buf  [0:7][0:7]; // dis mem
 
+// 缓冲区初值清零：否则未写过的像素在综合时是 don't-care，会被绑成 1 → 整屏全亮
+integer ii, jj;
+initial begin
+	for(ii=0; ii<8; ii=ii+1)
+		for(jj=0; jj<8; jj=jj+1) begin
+			write_buf[ii][jj] = 24'd0;
+			disp_buf[ii][jj]  = 24'd0;
+		end
+end
+
 localparam S_IDLE   = 2'd0; // 空闲
 localparam S_TX     = 2'd1; // 发送像素数据中
 localparam S_VBLANK = 2'd2; // 复位等待
@@ -45,6 +55,10 @@ reg [23:0] curr_pix;//锁存当前发送的像素
 
 wire [2:0] ty = pix_idx[5:3]; //3bits:3~5
 wire [2:0] tx = pix_idx[2:0]; //3bits:0~2
+// 下一个像素的坐标（原来直接用 pix_idx+1 当 y 会越界）
+wire [5:0] pix_nxt = pix_idx + 1'b1;
+wire [2:0] tx_nxt  = pix_nxt[2:0];
+wire [2:0] ty_nxt  = pix_nxt[5:3];
 
 // **************************************************
 reg write_flag_r;
@@ -97,7 +111,7 @@ always @(posedge clk or negedge rst_n) begin
                             if(pix_idx < TOTAL_PIX - 1) begin
                                 pix_idx <= pix_idx + 1'b1;
                                 bit_idx <= 5'd23;
-                                curr_pix <= disp_buf[pix_idx+1][tx];
+                                curr_pix <= disp_buf[ty_nxt][tx_nxt];
                             end
                             else begin
                                 state <= S_VBLANK;
@@ -118,7 +132,7 @@ always @(posedge clk or negedge rst_n) begin
                             if(pix_idx < TOTAL_PIX - 1) begin
                                 pix_idx <= pix_idx + 1'b1;
                                 bit_idx <= 5'd23;
-                                curr_pix <= disp_buf[pix_idx+1][tx];
+                                curr_pix <= disp_buf[ty_nxt][tx_nxt];
                             end
                             else begin
                                 state <= S_VBLANK;

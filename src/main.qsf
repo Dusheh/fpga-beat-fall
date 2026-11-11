@@ -74,15 +74,56 @@ set_instance_assignment -name IO_STANDARD "3.3-V LVCMOS" -to buttons[0]
 set_instance_assignment -name IO_STANDARD "3.3-V LVCMOS" -to clk
 set_instance_assignment -name IO_STANDARD "3.3-V LVCMOS" -to enable
 set_instance_assignment -name IO_STANDARD "3.3-V LVCMOS" -to replay
+set_global_assignment -name POWER_PRESET_COOLING_SOLUTION "23 MM HEAT SINK WITH 200 LFPM AIRFLOW"
+set_global_assignment -name POWER_BOARD_THERMAL_MODEL "NONE (CONSERVATIVE)"
+set_location_assignment PIN_A5 -to digitalLED[7]
+set_location_assignment PIN_B8 -to digitalLED[6]
+set_location_assignment PIN_A7 -to digitalLED[5]
+set_location_assignment PIN_B6 -to digitalLED[4]
+set_location_assignment PIN_B5 -to digitalLED[3]
+set_location_assignment PIN_A6 -to digitalLED[2]
+set_location_assignment PIN_A8 -to digitalLED[1]
+set_location_assignment PIN_B7 -to digitalLED[0]
+set_location_assignment PIN_B1 -to digitalSelect[5]
+set_location_assignment PIN_A2 -to digitalSelect[4]
+set_location_assignment PIN_B3 -to digitalSelect[3]
+set_location_assignment PIN_A3 -to digitalSelect[2]
+set_location_assignment PIN_B4 -to digitalSelect[1]
+set_location_assignment PIN_A4 -to digitalSelect[0]
+set_instance_assignment -name IO_STANDARD "3.3-V LVCMOS" -to digitalLED[7]
+set_instance_assignment -name IO_STANDARD "3.3-V LVCMOS" -to digitalLED[6]
+set_instance_assignment -name IO_STANDARD "3.3-V LVCMOS" -to digitalLED[5]
+set_instance_assignment -name IO_STANDARD "3.3-V LVCMOS" -to digitalLED[4]
+set_instance_assignment -name IO_STANDARD "3.3-V LVCMOS" -to digitalLED[3]
+set_instance_assignment -name IO_STANDARD "3.3-V LVCMOS" -to digitalLED[2]
+set_instance_assignment -name IO_STANDARD "3.3-V LVCMOS" -to digitalLED[1]
+set_instance_assignment -name IO_STANDARD "3.3-V LVCMOS" -to digitalLED[0]
+set_instance_assignment -name IO_STANDARD "3.3-V LVCMOS" -to digitalSelect[5]
+set_instance_assignment -name IO_STANDARD "3.3-V LVCMOS" -to digitalSelect[4]
+set_instance_assignment -name IO_STANDARD "3.3-V LVCMOS" -to digitalSelect[3]
+set_instance_assignment -name IO_STANDARD "3.3-V LVCMOS" -to digitalSelect[2]
+set_instance_assignment -name IO_STANDARD "3.3-V LVCMOS" -to digitalSelect[1]
+set_instance_assignment -name IO_STANDARD "3.3-V LVCMOS" -to digitalSelect[0]
+set_location_assignment PIN_D16 -to progressLED[3]
+set_location_assignment PIN_F15 -to progressLED[2]
+set_location_assignment PIN_F16 -to progressLED[1]
+set_location_assignment PIN_G15 -to progressLED[0]
+set_instance_assignment -name IO_STANDARD "3.3-V LVCMOS" -to progressLED[3]
+set_instance_assignment -name IO_STANDARD "3.3-V LVCMOS" -to progressLED[2]
+set_instance_assignment -name IO_STANDARD "3.3-V LVCMOS" -to progressLED[1]
+set_instance_assignment -name IO_STANDARD "3.3-V LVCMOS" -to progressLED[0]
+set_instance_assignment -name IO_STANDARD "3.3-V LVCMOS" -to rgb_martix
+set_location_assignment PIN_K6 -to rgb_martix
+set_global_assignment -name VERILOG_FILE songDataQT.v
+set_global_assignment -name VERILOG_FILE songDataGetter.v
+set_global_assignment -name VERILOG_FILE digital/show.v
+set_global_assignment -name VERILOG_FILE digital/sel_ctrl.v
 set_global_assignment -name VERILOG_FILE digitalRenderer.v
 set_global_assignment -name VERILOG_FILE gameController.v
 set_global_assignment -name VERILOG_FILE beep.v
-set_global_assignment -name VERILOG_FILE songData.v
 set_global_assignment -name VERILOG_FILE rgbRenderer.v
 set_global_assignment -name VERILOG_FILE tonePlayer.v
 set_global_assignment -name VERILOG_FILE main.v
 set_global_assignment -name VERILOG_FILE database.v
-set_global_assignment -name POWER_PRESET_COOLING_SOLUTION "23 MM HEAT SINK WITH 200 LFPM AIRFLOW"
-set_global_assignment -name POWER_BOARD_THERMAL_MODEL "NONE (CONSERVATIVE)"
 set_instance_assignment -name PARTITION_HIERARCHY root_partition -to | -section_id Top
 set_global_assignment -name SDC_FILE main.sdc
