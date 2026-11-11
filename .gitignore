@@ -1,0 +1,26 @@
+# macOS
+.DS_Store
+
+# Quartus 编译产物（bitstream/ 目录下的 sof 单独保留）
+src/db/
+src/incremental_db/
+src/greybox_tmp/
+src/output_files/
+src/*.qws
+src/*.qpf.bak
+src/*.rpt
+src/*.summary
+src/*.sld
+src/*.jdi
+src/*.pin
+src/*.dni
+src/*.done
+src/*.qmsg
+src/*.chg
+src/*.bak
+src/*.v.bak
+
+# 编辑器
+.vscode/
+.idea/
+*.swp
