@@ -24,3 +24,6 @@ src/*.v.bak
 .vscode/
 .idea/
 *.swp
+
+# 仿真产物
+sim/build/
