@@ -6,6 +6,14 @@ module rgbRenderer(
 	 input wire [2:0] y,
 	 input wire [23:0] pixelToWrite,
 	 input wire write_flag,
+    input wire clear_flag,
+	 input wire animEn,           // 1=动画状态(IDLE/ENTER_GAME)才响应write_flag
+	 
+	 // game var
+	 input wire [31:0] lightCell, // 0->1->2->3\然后到第二行循环
+	 input wire lightCellEn,      // 只有PLAYING才叠方块，别把IDLE的动画刷掉
+	 input wire [1:0] flashCol,   // 按键命中列
+	 input wire       flashEn,    // 按键红色底灯有效
 	 
 	 // rgb matrix
 	 output reg mt_in
@@ -30,8 +38,7 @@ parameter T1H       = 35;
 parameter T1L       = 15;
 parameter RST_CYC   = 14000;
 
-reg [23:0] write_buf [0:7][0:7]; // bufferr
-reg [23:0] disp_buf  [0:7][0:7]; // dis mem
+reg [23:0] write_buf [0:7][0:7]; // bufferr（单缓冲：发送时直接读，省一份显存）
 
 // 缓冲区初值清零：否则未写过的像素在综合时是 don't-care，会被绑成 1 → 整屏全亮
 integer ii, jj;
@@ -39,7 +46,6 @@ initial begin
 	for(ii=0; ii<8; ii=ii+1)
 		for(jj=0; jj<8; jj=jj+1) begin
 			write_buf[ii][jj] = 24'd0;
-			disp_buf[ii][jj]  = 24'd0;
 		end
 end
 
@@ -64,16 +70,45 @@ wire [2:0] ty_nxt  = pix_nxt[5:3];
 reg write_flag_r;
 wire write_toggle;
 assign write_toggle = write_flag ^ write_flag_r;
+reg clear_flag_r;
+wire clear_toggle;
+assign clear_toggle = clear_flag ^ clear_flag_r;
+// 捕捉clear_flag翻转，清屏
 // 捕捉write_flag翻转，采样x,y,pixelToWrite
+
 always @(posedge clk or negedge rst_n) begin
     if(!rst_n) begin
         write_flag_r <= 1'b0;
+        clear_flag_r <= 1'b0;
     end
     else begin
+		  integer ci, cj;
+		  if(lightCellEn) begin
+			  for(ci = 0; ci < 32; ci = ci + 1)begin
+					write_buf[ci/4][(ci%4)*2]<=lightCell[ci]?24'h0F0F0F:0;
+					write_buf[ci/4][(ci%4)*2+1]<=lightCell[ci]?24'h0F0F0F:0;
+				end
+		  end
+	 
+		  // 按键命中：底线对应列的两个物理像素亮红（放在方块之后，优先级最高）
+		  if(flashEn) begin
+			  write_buf[7][{flashCol,1'b0}]      <= 24'h0F0000;
+			  write_buf[7][{flashCol,1'b0}+1'b1] <= 24'h0F0000;
+		  end
+		 
         write_flag_r <= write_flag;
-        if(write_toggle) begin
+        clear_flag_r <= clear_flag;
+        if(write_toggle && animEn) begin
             write_buf[y][x] <= pixelToWrite;
         end
+        if(clear_toggle) begin
+            for(ci = 0; ci < 8; ci = ci + 1)
+                for(cj = 0; cj < 8; cj = cj + 1)
+                    write_buf[ci][cj] <= 24'd0;
+        end
+		  
+		  //x:lightCell%4
+		  //y:lightCell/4
     end
 end
 // **************************************************
@@ -94,7 +129,7 @@ always @(posedge clk or negedge rst_n) begin
                 pix_idx  <= 0;
                 bit_idx  <= 5'd23;
                 cnt      <= 0;
-                curr_pix <= disp_buf[ty][tx];
+                curr_pix <= write_buf[3'd0][3'd0];  // 第一颗固定取(0,0)，不能用户旧pix_idx
                 state    <= S_TX;
             end
             S_TX: begin
@@ -111,7 +146,7 @@ always @(posedge clk or negedge rst_n) begin
                             if(pix_idx < TOTAL_PIX - 1) begin
                                 pix_idx <= pix_idx + 1'b1;
                                 bit_idx <= 5'd23;
-                                curr_pix <= disp_buf[ty_nxt][tx_nxt];
+                                curr_pix <= write_buf[ty_nxt][tx_nxt];
                             end
                             else begin
                                 state <= S_VBLANK;
@@ -132,7 +167,7 @@ always @(posedge clk or negedge rst_n) begin
                             if(pix_idx < TOTAL_PIX - 1) begin
                                 pix_idx <= pix_idx + 1'b1;
                                 bit_idx <= 5'd23;
-                                curr_pix <= disp_buf[ty_nxt][tx_nxt];
+                                curr_pix <= write_buf[ty_nxt][tx_nxt];
                             end
                             else begin
                                 state <= S_VBLANK;
@@ -143,15 +178,8 @@ always @(posedge clk or negedge rst_n) begin
                 end
             end
             S_VBLANK: begin
-					integer yi, xi; //for(xy)
                 cnt <= cnt + 1'b1;
                 mt_in <= 1'b0;
-                // 缓冲区拷贝 write_buf -> disp_buf
-                for(yi=0; yi<8; yi=yi+1) begin
-                    for(xi=0; xi<8; xi=xi+1) begin
-                        disp_buf[yi][xi] <= write_buf[yi][xi];
-                    end
-                end
                 if(cnt >= RST_CYC) begin
                     state <= S_IDLE;
                 end

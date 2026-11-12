@@ -2,11 +2,13 @@ module songDataQT(
 input wire clk,
 input wire resetIdx,
 input wire nextFlag, 
-output reg [25:0]tone,
-output reg [4:0] toneTime,
-output reg [31:0]toneCnt,
+output wire [25:0]tone,
+output wire [4:0] toneTime,
+output wire [31:0]toneCnt,
 output wire [7:0]bpm,
-output reg finish
+output reg finish,
+output wire [9:0] songIdx,
+output wire [9:0] songLength
 );
 
 (* ramstyle = "M9K" *)reg [18:0] tones [0:336];
@@ -15,6 +17,8 @@ output reg finish
 reg [8:0] idx; // 0~511
 
 localparam length = 336;
+assign songLength = length;
+assign songIdx = idx;
 
 // ===== 音符定义（周期） =====
 localparam REST=0;
@@ -64,7 +68,6 @@ localparam Nowbpm = 8'd67;
  //2分音符= bps*2
 
 localparam bps = 50_000_000 / Nowbpm * 60;
-reg [31:0] val = 0;
 
 // ===== 指针推进 =====
 reg [31:0] cnt_t;
@@ -86,20 +89,31 @@ end
 assign bpm = Nowbpm;
 
 // ===== 输出当前音符 =====
-always @(*) begin
-   tone     = finish ? 26'd0 : tones[idx];
-   toneTime = ttime[idx];
-	
-	case(ttime[idx])
-		1:val=bps*4;
-		2:val=bps*2;
-		4:val=bps;
-		8:val=bps/2;
-		16:val=bps/4;
-		default:val=bps;
-	endcase 
-	toneCnt = val;
+// ROM 只能同步读到内部寄存器，否则 Quartus 不推断 M9K
+reg [18:0] tone_r;
+reg [4:0]  ttime_r;
+
+always @(posedge clk) begin
+   tone_r  <= tones[idx];
+   ttime_r <= ttime[idx];
 end
+
+// finish 静音 + 时值换算都基于寄存器，不碰 ROM 口
+assign tone     = finish ? 26'd0 : tone_r;
+assign toneTime = ttime_r;
+
+reg [31:0] toneCnt_r;
+always @(*) begin
+	case(ttime_r)
+		1:toneCnt_r=bps*4;
+		2:toneCnt_r=bps*2;
+		4:toneCnt_r=bps;
+		8:toneCnt_r=bps/2;
+		16:toneCnt_r=bps/4;
+		default:toneCnt_r=bps;
+	endcase
+end
+assign toneCnt = toneCnt_r;
 
 initial begin
     tones[ 0 ]  = LLA      ;  ttime[ 0 ]  = 5 'd8 ;

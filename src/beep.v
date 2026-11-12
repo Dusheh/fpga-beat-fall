@@ -20,6 +20,6 @@ always@(posedge clk)
     else
         cnt <= cnt;
 
-assign pwm = (cnt <= FREQ_T / 2) ? 1 : 0;
+assign pwm = (en && cnt <= FREQ_T / 2) ? 1 : 0;
 
 endmodule

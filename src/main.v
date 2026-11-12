@@ -16,10 +16,10 @@ module main(
 	
 // ******** Digital LED ***********
 	output wire [7:0]digitalLED,
-	output wire [5:0]digitalSelect
+	output wire [5:0]digitalSelect,
 	
-// ********
-	
+// ******** Switch ****************
+	input wire switch
 );
 
 //reg enable = 1;
@@ -50,7 +50,6 @@ gameController controller(
 .clk(clk),
 .buttons(buttons), //KEY1-4
 .rst_bt(replay), //KEY5
-.enabled(enable),	  //SW10
 
 //Digital
 .digitalLED(digitalLED),
@@ -63,7 +62,10 @@ gameController controller(
 .RGBMartix(rgb_martix),
 
 //Beeper
-.Beeper(beepPwm)
+.Beeper(beepPwm),
+
+//Switch
+.enabled(enable)	  //SW10
 );
 
 
